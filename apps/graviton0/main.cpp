@@ -135,10 +135,10 @@ void LoadEthinza(void)
     CommonLog.Info("[.] Copying %s to %s", PRODUCT_NAME, path.c_str());
     Osi.Execute(StringUtility::Format("sudo cp %s %s", PRODUCT_NAME, path.c_str()), output);
 
-    if (FileUtility::FileExists(StringUtility::Format("%s/%s", path.c_str(), PRODUCT_NAME)) {
+    if (FileUtility::FileExists(StringUtility::Format("%s/%s", path.c_str(), PRODUCT_NAME).c_str())) {
         CommonLog.Info("[+] %s copied", PRODUCT_NAME);
     } else {
-        CommonLog.Critical("[-] Error copying %s", PRODUCT_NAME);
+        CommonLog.Error("[-] Error copying %s", PRODUCT_NAME);
     }
 }
 
@@ -201,18 +201,6 @@ void InstallOvirtEngine(void)
     Osi.Execute("yum install ovirt-ansible-roles", output); // https://github.com/oVirt/ovirt-ansible
     //Osi.Execute("ansible-galaxy install ovirt.repositories", output);
     //Osi.Execute("ansible-galaxy install ovirt.engine-setup", output);
-
-    CommonLog.Info("\n===> Log in to Cockpit as root at https://[Host IP or FQDN]:9090 and click Virtualization → Hosted Engine");
-    CommonLog.Info("Click Start under the Hosted Engine option");
-    CommonLog.Info("Complete the setup wizard. As part of the setup, you will enter the Hosted Engine's name");
-    CommonLog.Info("oVirt requires a central shared storage system for Virtual Machine disk images, ISO files, and snapshots");
-    CommonLog.Info("As part of the setup wizard, you will need to provide the location of your storage");
-    CommonLog.Info("Once the installation completes, oVirt's web UI management interface will start. Browse to https://[Hosted Engine's name]/ to begin using oVirt");
-
-    CommonLog.Info("\nYou must install at least one additional Host for advanced features like migration and high-availability");
-    CommonLog.Info("Use the oVirt Administration Portal to add them to the Engine. Navigate to Compute → Hosts → New and enter the Host details");
-
-    CommonLog.Info("\n===> Contact us via http://www.ethinza.com for additional questions, comments or concerns\n");
 }
 
 // Checks if sshd is active/running, and starts it if needed
@@ -242,6 +230,21 @@ void PrepareSshCommunication(String user, String host)
     Osi.Execute(StringUtility::Format("ssh-copy-id %s@%s", user.c_str(), host.c_str()), output);
 }
 
+void PrintEndNotes(void)
+{
+    CommonLog.Info("\n===> Log in to Cockpit as root at https://[Host IP or FQDN]:9090 and click Virtualization → Hosted Engine");
+    CommonLog.Info("Click Start under the Hosted Engine option");
+    CommonLog.Info("Complete the setup wizard. As part of the setup, you will enter the Hosted Engine's name");
+    CommonLog.Info("oVirt requires a central shared storage system for Virtual Machine disk images, ISO files, and snapshots");
+    CommonLog.Info("As part of the setup wizard, you will need to provide the location of your storage");
+    CommonLog.Info("Once the installation completes, oVirt's web UI management interface will start. Browse to https://[Hosted Engine's name]/ to begin using oVirt");
+
+    CommonLog.Info("\nYou must install at least one additional Host for advanced features like migration and high-availability");
+    CommonLog.Info("Use the oVirt Administration Portal to add them to the Engine. Navigate to Compute → Hosts → New and enter the Host details");
+
+    CommonLog.Info("\n===> Contact us via http://www.ethinza.com for additional questions, comments or concerns\n");
+}
+
 // Installs all necessary tools
 void InstallMaster(void)
 {
@@ -253,6 +256,8 @@ void InstallMaster(void)
     InstallOvirtEngine();
 
     CheckAndStartSshd();
+
+    PrintEndNotes();
 }
 
 // Client node installation
@@ -324,7 +329,7 @@ void AddNodes(const char* prefix, const char* domain, const char* ipAddresses)
         }
         else
         {
-            CommonLog.Critical("[-] Host updates failed");
+            CommonLog.Error("[-] Host updates failed");
         }
 
         FileUtility::WriteToFile(ANSIBLE_HOSTS, sb.GetText(), false);
@@ -381,7 +386,7 @@ int main(int argc, char* argv[])
             printf("Missing argument(s), see help\n\n");
             PrintHelp(nullptr);
         }
-    else if ((command == "help") || (command == "?")) {
+    } else if ((command == "help") || (command == "?")) {
         PrintHelp(nullptr);
     } else {
         printf("Unsupported command: %s\n", command.c_str());
